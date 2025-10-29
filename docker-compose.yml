@@ -1,7 +1,8 @@
 services:
+  # Base de données PostgreSQL
   db_postgres:
     image: postgres:16
-    container_name: postgres
+    container_name: blackjack_postgres
     env_file:
       - ./credentials/postgres.env
     ports:
@@ -9,10 +10,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./seed/postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U web_user -d blackjack"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blackjack-network
 
+  # Base de données MongoDB
   db_mongodb:
     image: mongo:7
-    container_name: mongodb
+    container_name: blackjack_mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -21,6 +30,62 @@ services:
     volumes:
       - mongodb_data:/data/db
       - ./seed/mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blackjack-network
+
+  # API Backend
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: blackjack_api
+    restart: unless-stopped
+    ports:
+      - "3078:3078"
+    env_file:
+      - ./api/.env.docker
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+      - /app/db
+    depends_on:
+      db_postgres:
+        condition: service_healthy
+      db_mongodb:
+        condition: service_healthy
+    networks:
+      - blackjack-network
+    command: npm run dev
+
+  # Frontend Next.js
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: blackjack_front
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+    networks:
+      - blackjack-network
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3078
+    command: npm run dev
+
+networks:
+  blackjack-network:
+    driver: bridge
 
 volumes:
   pgdata:
