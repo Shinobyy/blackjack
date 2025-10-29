@@ -6,7 +6,7 @@ CREATE TABLE users (
   id VARCHAR PRIMARY KEY,
   session_id VARCHAR UNIQUE NOT NULL,
   username VARCHAR NOT NULL,
-  max_profit INTEGER DEFAULT 15000,
+  max_profit INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -29,9 +29,9 @@ CREATE TABLE tournaments (
 -- Insertion des données d'exemple
 
 INSERT INTO users (id, session_id, username, max_profit, created_at, updated_at) VALUES
-    (gen_random_uuid()::text, 'session-player-001', 'PlayerOne', 15000, NOW(), NOW()),
-    (gen_random_uuid()::text, 'session-player-002', 'LuckyPlayer', 20000, NOW(), NOW()),
-    (gen_random_uuid()::text, 'session-player-003', 'ProPlayer', 25000, NOW(), NOW());
+    (gen_random_uuid()::text, 'session-player-001', 'PlayerOne', 250, NOW(), NOW()),
+    (gen_random_uuid()::text, 'session-player-002', 'LuckyPlayer', 600, NOW(), NOW()),
+    (gen_random_uuid()::text, 'session-player-003', 'ProPlayer', 800, NOW(), NOW());
 
 INSERT INTO bots (id, username, created_at, updated_at) VALUES
     (gen_random_uuid()::text, 'BotAlice', NOW(), NOW()),

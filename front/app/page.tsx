@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Leaderboard from './components/Leaderboard';
 
 export default function Home() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-4 gap-8">
       {/* Effet d'ambiance tamisée - cercles de lumière verte */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
@@ -70,15 +71,19 @@ export default function Home() {
         />
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-2xl p-8 max-w-md w-full border border-[#00ff41] border-opacity-30"
-        style={{
-          boxShadow: '0 0 30px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 255, 65, 0.05)'
-        }}
-      >
+      {/* Conteneur principal avec formulaire et leaderboard */}
+      <div className="relative flex flex-col lg:flex-row items-start justify-center gap-8 w-full max-w-6xl z-10">
+        
+        {/* Formulaire de démarrage */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-2xl p-8 max-w-md w-full border border-[#00ff41] border-opacity-30"
+          style={{
+            boxShadow: '0 0 30px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 255, 65, 0.05)'
+          }}
+        >
         <motion.h1 
           className="text-5xl font-bold text-center mb-2 text-[#00ff41] neon-text"
           initial={{ y: -20 }}
@@ -201,16 +206,14 @@ export default function Home() {
             ► Démarrer la partie
           </motion.button>
         </div>
-
-        <motion.div 
-          className="mt-6 text-center text-[#00cc33] text-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-        >
-          <p>💰 Solde initial: 15,000 jetons</p>
-        </motion.div>
       </motion.div>
+
+      {/* Leaderboard */}
+      <div className="w-full max-w-md">
+        <Leaderboard />
+      </div>
+
+    </div>
     </div>
   );
 }
