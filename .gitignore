@@ -1,1 +1,3 @@
 credentials/*.env
+
+api/node_modules/

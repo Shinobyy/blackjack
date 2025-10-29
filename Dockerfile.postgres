@@ -1,0 +1,9 @@
+# Dockerfile pour PostgreSQL avec seed automatique
+FROM postgres:16
+
+# Copier le script de seed dans le répertoire d'initialisation
+# PostgreSQL exécute automatiquement tous les scripts .sql dans /docker-entrypoint-initdb.d/
+# lors de la première initialisation de la base de données
+COPY ./seed/postgres.sql /docker-entrypoint-initdb.d/
+
+# Le script sera exécuté automatiquement au premier démarrage du conteneur

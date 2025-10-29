@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../db/mongodb/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_DATABASE_URL")
+}
+
+model Games {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  tournamentId  String   @db.ObjectId
+  timestamp     DateTime @default(now())
+  rounds        Round[]
+  winnerId      String?  @db.ObjectId
+  metadata      Metadata?
+}
+
+type Round {
+  id          String
+  type        userType
+  initialHand String[]
+  action      Actions?
+  turn        Int
+  result      Result?
+}
+
+type Result {
+  hand      String[]
+  score     Int
+  isBusted  Boolean
+}
+
+type Metadata {
+  durationSeconds Int
+}
+
+enum Actions {
+  HIT
+  STAND
+}
+
+enum userType {
+  PLAYER
+  BOT
+  DEALER
+}

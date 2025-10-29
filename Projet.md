@@ -118,4 +118,3 @@ Parties
     "duration_seconds": 42
   }
 }
-
