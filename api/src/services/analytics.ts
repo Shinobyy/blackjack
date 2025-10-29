@@ -16,6 +16,12 @@ interface BestPlayer {
   winRate: number;
 }
 
+interface PlayerTournamentStats {
+  username: string;
+  max_profit: number;
+  active_tournaments_count: number;
+}
+
 export default class AnalyticsService {
   private pgClient: PostgresClient;
   private mongoClient: MongoClient;
@@ -24,6 +30,21 @@ export default class AnalyticsService {
     this.pgClient = new PostgresClient();
     this.mongoClient = new MongoClient();
   }
+
+  async getPlayersWithTheMostTournaments(): Promise<PlayerTournamentStats[]> {
+    const result = await this.pgClient.$queryRaw<PlayerTournamentStats[]>`
+      SELECT 
+        u.username, 
+        u.max_profit, 
+        COUNT(t.id) AS active_tournaments_count
+      FROM users u
+      LEFT JOIN tournaments t ON u.id = t.user_id AND t.active = TRUE
+      GROUP BY u.id, u.username, u.max_profit
+      ORDER BY active_tournaments_count DESC
+    `;
+    return result;
+  }
+
 
   async getPlayerRankingByTotalGains(): Promise<RankingItem[]> {
     const mongoResult = await this.mongoClient.$runCommandRaw({
