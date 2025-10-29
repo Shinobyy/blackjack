@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../components/Card';
+import { calculateHandScore } from '../utils/cards';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface Round {
   id: string;
@@ -109,8 +111,11 @@ export default function GamePage() {
       }
 
       if (dealerRound && dealerRound.result) {
-        setDealerHand([dealerRound.result.hand[0]!, '🂠']); // Cacher la 2ème carte
-        setDealerScore(0); // Ne pas montrer le score
+        const visibleCards = [dealerRound.result.hand[0]!, '🂠']; // Cacher la 2ème carte
+        setDealerHand(visibleCards);
+        // Calculer le score de la carte visible uniquement
+        const visibleScore = calculateHandScore([dealerRound.result.hand[0]!]);
+        setDealerScore(visibleScore);
       }
 
       // Stocker les rounds des bots
@@ -261,162 +266,293 @@ export default function GamePage() {
 
   if (loading && !showBetModal) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-800 via-green-900 to-black flex items-center justify-center">
-        <div className="text-yellow-400 text-2xl">Chargement...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <motion.div 
+          className="text-[#00ff41] text-2xl neon-text"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          Chargement...
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 via-green-900 to-black p-4">
+    <div className="min-h-screen bg-black relative overflow-hidden p-2">
+      {/* Ambiance tamisée avec lumières vertes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-10 left-1/4 w-96 h-96 bg-[#00ff41] rounded-full blur-[150px] opacity-10"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.05, 0.15, 0.05]
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-10 right-1/4 w-96 h-96 bg-[#00ff41] rounded-full blur-[150px] opacity-10"
+          animate={{
+            scale: [1.3, 1, 1.3],
+            opacity: [0.05, 0.15, 0.05]
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2.5
+          }}
+        />
+      </div>
+
       {/* Bet Modal */}
-      {showBetModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-green-700 to-green-900 rounded-2xl shadow-2xl p-8 max-w-md w-full border-4 border-yellow-600">
-            <h2 className="text-3xl font-bold text-yellow-400 mb-6 text-center">
-              Placez votre mise
-            </h2>
-            
-            <div className="mb-6">
-              <label className="block text-yellow-200 font-semibold mb-2">
-                Mise: {entryBlind} jetons
-              </label>
-              <input
-                type="range"
-                min="10"
-                max="1000"
-                step="10"
-                value={entryBlind}
-                onChange={(e) => setEntryBlind(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-
-            <button
-              onClick={createGame}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-green-900 font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 text-lg disabled:opacity-50"
+      <AnimatePresence>
+        {showBetModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-2xl p-8 max-w-md w-full border border-[#00ff41] border-opacity-30"
+              style={{
+                boxShadow: '0 0 30px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 255, 65, 0.05)'
+              }}
             >
-              {loading ? 'Création...' : '🎲 Distribuer les cartes'}
-            </button>
+              <h2 className="text-3xl font-bold text-[#00ff41] mb-6 text-center neon-text uppercase tracking-wider">
+                Placez votre mise
+              </h2>
+              
+              <div className="mb-6">
+                <label className="block text-[#00ff41] font-semibold mb-3 text-sm uppercase tracking-wide">
+                  › Mise: {entryBlind} jetons
+                </label>
+                <input
+                  type="range"
+                  min="10"
+                  max="1000"
+                  step="10"
+                  value={entryBlind}
+                  onChange={(e) => setEntryBlind(parseInt(e.target.value))}
+                  className="w-full accent-[#00ff41]"
+                />
+              </div>
 
-            <button
-              onClick={() => router.push('/')}
-              className="w-full mt-4 text-yellow-300 hover:text-yellow-100 underline"
-            >
-              ← Retour
-            </button>
-          </div>
-        </div>
-      )}
+              <motion.button
+                type="button"
+                onClick={createGame}
+                disabled={loading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-[#00ff41] hover:bg-[#00cc33] text-black font-bold py-4 px-6 rounded-lg transition-all text-lg disabled:opacity-50 uppercase tracking-wider"
+                style={{
+                  boxShadow: '0 0 20px rgba(0, 255, 65, 0.4)'
+                }}
+              >
+                {loading ? 'CRÉATION...' : '► DISTRIBUER LES CARTES'}
+              </motion.button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="w-full mt-4 text-[#00cc33] hover:text-[#00ff41] transition-colors"
+              >
+                ← Retour
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Game Board */}
       {!showBetModal && (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto relative z-10">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-yellow-400 mb-2">🃏 Blackjack</h1>
-            <p className="text-yellow-200">Mise: {entryBlind} jetons</p>
-          </div>
+          <motion.div 
+            className="text-center mb-4"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+          >
+            <h1 className="text-3xl font-bold text-[#00ff41] mb-1 neon-text">♠ BLACKJACK ♥</h1>
+            <p className="text-[#00cc33] uppercase tracking-wider text-sm">Mise: {entryBlind} jetons</p>
+          </motion.div>
 
           {/* Dealer's Hand */}
-          <div className="mb-12 bg-green-700 bg-opacity-50 rounded-xl p-6 border-2 border-yellow-600">
-            <h2 className="text-2xl font-bold text-yellow-300 mb-4">
-              🎩 Croupier {dealerScore > 0 ? `- Score: ${dealerScore}` : '- Score: ?'}
+          <motion.div 
+            className="mb-4 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-xl p-4 border border-[#00ff41] border-opacity-20"
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            style={{
+              boxShadow: 'inset 0 0 20px rgba(0, 255, 65, 0.05), 0 0 20px rgba(0, 255, 65, 0.1)'
+            }}
+          >
+            <h2 className="text-lg font-bold text-[#00ff41] mb-3 uppercase tracking-wide">
+              🎩 Croupier • Score: {dealerScore}{!gameOver && ' (1 carte visible)'}
             </h2>
             <div className="flex gap-2 flex-wrap justify-center">
               {dealerHand.map((card, index) => (
-                <Card key={index} card={card} />
+                <Card key={index} card={card} delay={index * 0.1} />
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Message */}
-          <div className="text-center mb-8">
-            <p className="text-2xl font-bold text-yellow-300 bg-green-700 bg-opacity-50 py-4 px-6 rounded-lg border-2 border-yellow-600">
-              {message}
-            </p>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={message}
+              className="text-center mb-4"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <p className="text-lg font-bold text-[#00ff41] bg-gradient-to-r from-[#0a0a0a] to-[#1a1a1a] py-2 px-4 rounded-lg border border-[#00ff41] border-opacity-30 inline-block neon-text uppercase tracking-wide">
+                {message}
+              </p>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Bots (Tournament Mode) */}
           {botRounds.length > 0 && (
-            <div className="mb-8 bg-green-700 bg-opacity-50 rounded-xl p-6 border-2 border-yellow-600">
-              <h2 className="text-2xl font-bold text-yellow-300 mb-4">
-                🤖 Bots ({botRounds.length})
+            <motion.div 
+              className="mb-4 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-xl p-4 border border-[#00ff41] border-opacity-20"
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                boxShadow: 'inset 0 0 20px rgba(0, 255, 65, 0.05), 0 0 20px rgba(0, 255, 65, 0.1)'
+              }}
+            >
+              <h2 className="text-lg font-bold text-[#00ff41] mb-3 uppercase tracking-wide">
+                🤖 Adversaires IA ({botRounds.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {botRounds.map((bot, index) => (
-                  <div key={bot.id} className="bg-green-800 bg-opacity-50 rounded-lg p-4 border border-yellow-500">
-                    <h3 className="text-yellow-200 font-semibold mb-2">
-                      🤖 {bot.name || `Bot ${index + 1}`}
-                      {bot.result && ` - Score: ${bot.result.score}`}
+                  <motion.div 
+                    key={bot.id}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="bg-black bg-opacity-60 rounded-lg p-3 border border-[#00ff41] border-opacity-20"
+                    style={{
+                      boxShadow: 'inset 0 0 15px rgba(0, 255, 65, 0.05)'
+                    }}
+                  >
+                    <h3 className="text-[#00ff41] font-semibold mb-2 uppercase text-xs tracking-wide">
+                      › {bot.name || `Bot ${index + 1}`}
+                      {bot.result && ` • Score: ${bot.result.score}`}
                       {bot.result?.isBusted && ' 💥'}
                     </h3>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 flex-wrap justify-center">
                       {bot.result?.hand.map((card, cardIndex) => (
-                        <div key={cardIndex} className="text-2xl">
-                          {card}
-                        </div>
+                        <Card key={cardIndex} card={card} delay={cardIndex * 0.05} />
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Player's Hand */}
-          <div className="mb-8 bg-green-700 bg-opacity-50 rounded-xl p-6 border-2 border-yellow-600">
-            <h2 className="text-2xl font-bold text-yellow-300 mb-4">
-              👤 Vous - Score: {playerScore}
+          <motion.div 
+            className="mb-4 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] rounded-xl p-4 border border-[#00ff41] border-opacity-30"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            style={{
+              boxShadow: 'inset 0 0 20px rgba(0, 255, 65, 0.1), 0 0 30px rgba(0, 255, 65, 0.2)'
+            }}
+          >
+            <h2 className="text-lg font-bold text-[#00ff41] mb-3 uppercase tracking-wide">
+              👤 Vous • Score: {playerScore}
             </h2>
             <div className="flex gap-2 flex-wrap justify-center">
               {playerHand.map((card, index) => (
-                <Card key={index} card={card} />
+                <Card key={index} card={card} delay={index * 0.1} />
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Actions */}
-          <div className="flex gap-4 justify-center">
+          <motion.div 
+            className="flex gap-3 justify-center flex-wrap"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             {!gameOver && (
               <>
-                <button
+                <motion.button
+                  type="button"
                   onClick={handleHit}
                   disabled={loading}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 text-lg disabled:opacity-50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#00ff41] hover:bg-[#00cc33] text-black font-bold py-3 px-8 rounded-lg transition-all text-base disabled:opacity-50 uppercase tracking-wider"
+                  style={{
+                    boxShadow: '0 0 20px rgba(0, 255, 65, 0.4)'
+                  }}
                 >
-                  🃏 Hit
-                </button>
-                <button
+                  ► HIT
+                </motion.button>
+                <motion.button
+                  type="button"
                   onClick={handleStand}
                   disabled={loading}
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 text-lg disabled:opacity-50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-black border-2 border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41] hover:text-black font-bold py-3 px-8 rounded-lg transition-all text-base disabled:opacity-50 uppercase tracking-wider"
+                  style={{
+                    boxShadow: '0 0 15px rgba(0, 255, 65, 0.3)'
+                  }}
                 >
-                  ✋ Stand
-                </button>
+                  ✋ STAND
+                </motion.button>
               </>
             )}
             
             {gameOver && (
-              <button
+              <motion.button
+                type="button"
                 onClick={resetGame}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-green-900 font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 text-lg"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-[#00ff41] hover:bg-[#00cc33] text-black font-bold py-3 px-8 rounded-lg transition-all text-base uppercase tracking-wider"
+                style={{
+                  boxShadow: '0 0 30px rgba(0, 255, 65, 0.5)'
+                }}
               >
-                🔄 Nouvelle partie
-              </button>
+                🔄 NOUVELLE PARTIE
+              </motion.button>
             )}
-          </div>
+          </motion.div>
 
           {/* Back to Home */}
-          <div className="text-center mt-8">
+          <motion.div 
+            className="text-center mt-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
             <button
+              type="button"
               onClick={() => router.push('/')}
-              className="text-yellow-300 hover:text-yellow-100 underline"
+              className="text-[#00cc33] hover:text-[#00ff41] transition-colors uppercase text-xs tracking-wider"
             >
               ← Retour à l'accueil
             </button>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
