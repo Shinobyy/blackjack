@@ -1,56 +1,107 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import { getCardDisplay } from '../utils/cards';
 
 interface CardProps {
   card: string;
+  delay?: number;
 }
 
-export default function Card({ card }: CardProps) {
-  const { value, suit, color } = getCardDisplay(card);
+// Fonction pour mapper les cartes au format SVG
+const getCardImagePath = (card: string): string | null => {
+  if (card === '🂠') return '/cards/BACK.svg';
   
+  const { value, suit } = getCardDisplay(card);
+  
+  // Mapping des couleurs
+  const suitMap: { [key: string]: string } = {
+    '♠': 'SPADE',
+    '♥': 'HEART',
+    '♦': 'DIAMOND',
+    '♣': 'CLUB'
+  };
+  
+  const suitName = suitMap[suit];
+  if (!suitName) return null;
+  
+  // Mapping des valeurs
+  const valueMap: { [key: string]: string } = {
+    'A': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '7': '7',
+    '8': '8',
+    '9': '9',
+    '10': '10',
+    'J': '11-JACK',
+    'Q': '12-QUEEN',
+    'K': '13-KING'
+  };
+  
+  const valueName = valueMap[value];
+  if (!valueName) return null;
+  
+  return `/cards/${suitName}-${valueName}.svg`;
+};
+
+export default function Card({ card, delay = 0 }: CardProps) {
+  const imagePath = getCardImagePath(card);
   const isHidden = card === '🂠';
 
   return (
-    <div className={`
-      relative w-20 h-28 rounded-lg shadow-xl
-      ${isHidden ? 'bg-gradient-to-br from-blue-800 to-blue-900' : 'bg-white'}
-      border-2 border-gray-300
-      flex flex-col items-center justify-between
-      p-2
-      transform transition-all hover:scale-105
-    `}>
-      {isHidden ? (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-4xl text-blue-400">🂠</div>
-        </div>
+    <motion.div
+      initial={{ 
+        opacity: 0, 
+        y: -100,
+        rotateY: 180 
+      }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        rotateY: 0
+      }}
+      transition={{ 
+        duration: 0.6,
+        delay: delay,
+        type: "spring",
+        stiffness: 100
+      }}
+      whileHover={{ 
+        scale: 1.1,
+        rotateZ: 5,
+        transition: { duration: 0.2 }
+      }}
+      className={`
+        relative w-16 h-24 rounded-lg
+        cursor-pointer
+        transform-gpu
+        ${isHidden ? 'animate-pulse' : ''}
+      `}
+      style={{
+        filter: 'drop-shadow(0 0 8px rgba(0, 255, 65, 0.4))',
+        transformStyle: 'preserve-3d'
+      }}
+    >
+      {imagePath ? (
+        <img 
+          src={imagePath} 
+          alt={card}
+          className="w-full h-full object-contain rounded-lg"
+          style={{
+            filter: isHidden 
+              ? 'brightness(0.7) drop-shadow(0 0 10px rgba(0, 255, 65, 0.6))' 
+              : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))'
+          }}
+        />
       ) : (
-        <>
-          {/* Top value */}
-          <div className={`
-            text-left w-full font-bold text-lg
-            ${color === 'red' ? 'text-red-600' : 'text-black'}
-          `}>
-            <div>{value}</div>
-            <div className="text-2xl leading-none">{suit}</div>
-          </div>
-
-          {/* Center suit */}
-          <div className={`
-            text-4xl
-            ${color === 'red' ? 'text-red-600' : 'text-black'}
-          `}>
-            {suit}
-          </div>
-
-          {/* Bottom value (rotated) */}
-          <div className={`
-            text-right w-full font-bold text-lg transform rotate-180
-            ${color === 'red' ? 'text-red-600' : 'text-black'}
-          `}>
-            <div>{value}</div>
-            <div className="text-2xl leading-none">{suit}</div>
-          </div>
-        </>
+        <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-4xl">
+          {card}
+        </div>
       )}
-    </div>
+    </motion.div>
   );
 }
