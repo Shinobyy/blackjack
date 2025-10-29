@@ -198,7 +198,7 @@ db.games.aggregate([
 
 ### 6. Stratégie de Sauvegarde
 Pour cette partie, vous devez effectuer des recherches afin d'argumenter vos réponses.
-Source: https://trilio.io/resources/mongodb-backup/ & https://www.postgresql.org/docs/current/backup.html
+Sources: https://trilio.io/resources/mongodb-backup/ & https://www.postgresql.org/docs/current/backup.html
 
 
 - **PostgreSQL** : Méthode proposée (pg_dump, sauvegarde continue, etc.)
