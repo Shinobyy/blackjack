@@ -9,6 +9,9 @@ Nom/prénom : CASSET Corentin
 
 Décrivez votre application en 3-5 phrases : problématique, objectif et fonctionnalités principales.
 
+L'application de jeu de cartes en ligne permet aux utilisateurs de participer à des tournois de blackjack. 
+L'objectif est de fournir une expérience simple, tout en garantissant la sécurité et l'intégrité des données des utilisateurs. Les fonctionnalités principales incluent la création de parties, le jeu en lui même, la gestion des utilisateurs, la création et la gestion de tournois / parties, ainsi que le suivi des performances des joueurs avec des analytics pour avoir des metrics sur différents sujets (ex: ).
+
 ### 2. Architecture PostgreSQL (Méthode Merise)
 
 **MCD (Modèle Conceptuel de Données)**
