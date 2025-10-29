@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Card from '../components/Card';
+import { calculateHandScore } from '../utils/cards';
 
 const API_URL = 'http://localhost:3000';
 
@@ -109,8 +110,11 @@ export default function GamePage() {
       }
 
       if (dealerRound && dealerRound.result) {
-        setDealerHand([dealerRound.result.hand[0]!, '🂠']); // Cacher la 2ème carte
-        setDealerScore(0); // Ne pas montrer le score
+        const visibleCards = [dealerRound.result.hand[0]!, '🂠']; // Cacher la 2ème carte
+        setDealerHand(visibleCards);
+        // Calculer le score de la carte visible uniquement
+        const visibleScore = calculateHandScore([dealerRound.result.hand[0]!]);
+        setDealerScore(visibleScore);
       }
 
       // Stocker les rounds des bots
@@ -322,7 +326,7 @@ export default function GamePage() {
           {/* Dealer's Hand */}
           <div className="mb-12 bg-green-700 bg-opacity-50 rounded-xl p-6 border-2 border-yellow-600">
             <h2 className="text-2xl font-bold text-yellow-300 mb-4">
-              🎩 Croupier {dealerScore > 0 ? `- Score: ${dealerScore}` : '- Score: ?'}
+              🎩 Croupier - Score: {dealerScore}{!gameOver && ' (1 carte visible)'}
             </h2>
             <div className="flex gap-2 flex-wrap justify-center">
               {dealerHand.map((card, index) => (
