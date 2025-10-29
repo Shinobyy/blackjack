@@ -62,8 +62,8 @@ export default class UserService {
     async create(data: CreateUserData): Promise<User> {
         const { session_id, username, max_profit = 15000 } = data;
         const users = await this.pgClient.$queryRaw<User[]>`
-            INSERT INTO users (session_id, username, max_profit)
-            VALUES (${session_id}, ${username}, ${max_profit})
+            INSERT INTO users (id, session_id, username, max_profit)
+            VALUES (gen_random_uuid(), ${session_id}, ${username}, ${max_profit})
             RETURNING *
         `;
         return users[0]!;
@@ -71,19 +71,15 @@ export default class UserService {
 
     async updateById(id: string, data: UpdateUserData): Promise<User | null> {
         const updates: string[] = [];
-        const values: any[] = [];
 
         if (data.session_id !== undefined) {
-            updates.push(`session_id = $${updates.length + 1}`);
-            values.push(data.session_id);
+            updates.push(`session_id = '${data.session_id}'`);
         }
         if (data.username !== undefined) {
-            updates.push(`username = $${updates.length + 1}`);
-            values.push(data.username);
+            updates.push(`username = '${data.username}'`);
         }
         if (data.max_profit !== undefined) {
-            updates.push(`max_profit = $${updates.length + 1}`);
-            values.push(data.max_profit);
+            updates.push(`max_profit = ${data.max_profit}`);
         }
 
         if (updates.length === 0) {
@@ -92,14 +88,13 @@ export default class UserService {
 
         updates.push(`updated_at = NOW()`);
 
-        const query = Prisma.sql`
+        const users = await this.pgClient.$queryRaw<User[]>`
             UPDATE users
             SET ${Prisma.raw(updates.join(', '))}
             WHERE id = ${id}
             RETURNING *
         `;
 
-        const users = await this.pgClient.$queryRaw<User[]>(query);
         return users.length > 0 ? users[0]! : null;
     }
 

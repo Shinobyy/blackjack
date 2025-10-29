@@ -47,8 +47,8 @@ export default class BotService {
     async create(data: CreateBotData): Promise<Bots> {
         const { username } = data;
         const bots = await this.pgClient.$queryRaw<Bots[]>`
-            INSERT INTO bots (username)
-            VALUES (${username})
+            INSERT INTO bots (id, username)
+            VALUES (gen_random_uuid(), ${username})
             RETURNING *
         `;
         return bots[0]!;

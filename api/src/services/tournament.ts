@@ -57,8 +57,8 @@ export default class TournamentService {
     async create(data: CreateTournamentsData): Promise<Tournaments> {
         const { user_id, active = false } = data;
         const tournaments = await this.pgClient.$queryRaw<Tournaments[]>`
-            INSERT INTO tournaments (user_id, active)
-            VALUES (${user_id}, ${active})
+            INSERT INTO tournaments (id, user_id, active)
+            VALUES (gen_random_uuid(), ${user_id}, ${active})
             RETURNING *
         `;
         return tournaments[0]!;

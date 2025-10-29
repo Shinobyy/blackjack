@@ -42,7 +42,7 @@ export default class GameService {
       updates: [
         {
           q: { _id: id },
-          u: data,
+          u: { $set: data },
         },
       ],
     });
