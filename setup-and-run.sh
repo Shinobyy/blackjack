@@ -42,9 +42,37 @@ echo ""
 echo "✓ Frontend configuré avec succès!"
 echo ""
 echo "========================================"
-echo "  DÉMARRAGE DU SERVEUR DE DÉVELOPPEMENT"
+echo "  DÉMARRAGE DES SERVEURS"
 echo "========================================"
 echo ""
 
-# Lancement du serveur de développement
-npm run dev
+echo ">>> Démarrage de l'API sur http://localhost:3000..."
+echo ">>> Démarrage du Frontend sur http://localhost:3001..."
+echo ""
+echo "Appuyez sur Ctrl+C pour arrêter les serveurs"
+echo ""
+
+# Fonction pour nettoyer les processus
+cleanup() {
+    echo ""
+    echo "Arrêt des serveurs..."
+    kill $API_PID $FRONT_PID 2>/dev/null
+    echo "Serveurs arrêtés."
+    exit 0
+}
+
+# Capturer Ctrl+C
+trap cleanup SIGINT SIGTERM
+
+# Lancer l'API en arrière-plan
+cd ../api || exit 1
+npm run dev &
+API_PID=$!
+cd ../front
+
+# Lancer le Frontend en arrière-plan
+npm run dev &
+FRONT_PID=$!
+
+# Attendre que les deux processus se terminent
+wait $API_PID $FRONT_PID
